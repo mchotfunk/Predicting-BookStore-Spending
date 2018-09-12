@@ -359,6 +359,7 @@ fit_slr_sel_gam = gam(fit_slr_sel_gam_formula, optimizer = "perf", data=all3[tra
 summary(fit_slr_sel_gam)
 ```
 
+---
 
 **Lasso Model**
 ```{r}
@@ -386,6 +387,8 @@ fit_lasso_gam = gam(fit_lasso_gam_formula, optimizer = "perf", data= all3[train,
 #Predictions using Lasso
 yhat_lasso <-predict(fit_lasso, all3[!train,-c(1,2)])
 ```
+
+---
 
 **Stepwise Model**
 ```{r}
@@ -419,6 +422,8 @@ yhat_gam= predict(fit_gam_step, test_df3[,-c(1,2)])
 yhat_step[yhat_step<0]=0
 ```
 
+---
+
 ** Random Forest ** 
 ```{r rf}
 #Getting the best parameters
@@ -444,6 +449,30 @@ rf_base = randomForest(logtarg~., data=all3[train, -c(1,2)], mtry=param_tune_rf$
 #Prediction using RF
 rf_predict = predict(rf_base, all3[!train,-c(1,2)])
 ```
+
+---
+
+**XGBoost**
+```{r}
+#Another XGBoost  for mini  
+
+library(xgboost)
+set.seed(123)
+## Model parameters trained using xgb.cv function
+xgbFit = xgboost(data = as.matrix(train_df3[,4:84]), nfold = 5, label = as.matrix(train_df3$logtarg[4:84]), 
+                 nrounds = 2200, verbose = FALSE, objective = "reg:linear", eval_metric = "rmse", 
+                 nthread = 8, eta = 0.01, gamma = 0.0468, max_depth = 6, min_child_weight = 1.7817, 
+                 subsample = 0.5213, colsample_bytree = 0.4603)
+## print(xgbFit)
+
+## Predictions
+preds2 <- predict(xgbFit, newdata = as.matrix(mini_test[,4:84]))
+rmse(mini_test$logtarg, preds2)
+mean((mini_test$logtarg - preds2)^2)
+```
+
+---
+
 
 ** Evaluation **
 
